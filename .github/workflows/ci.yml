@@ -1,0 +1,55 @@
+name: Verificar frontend y entrega Compose
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  entrega:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: frontend
+      - uses: actions/checkout@v4
+        with:
+          repository: Florez264/ordenes-service
+          path: ordenes-service
+      - uses: actions/checkout@v4
+        with:
+          repository: Florez264/agenda-service
+          path: agenda-service
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar y probar Angular
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run test:ci
+      - name: Extraer infraestructura entregada y comprobar Compose
+        run: |
+          unzip frontend/entrega/subocol-infra.zip
+          docker compose -p subocol-ci -f subocol-infra/compose.yaml config --quiet
+      - name: Construir y levantar la solución completa
+        env:
+          NOTIFICATIONS_MODE: LOG
+        run: docker compose -p subocol-ci -f subocol-infra/compose.yaml up --build -d
+      - name: Probar SPA y flujo de cierre con MySQL
+        run: python frontend/.github/scripts/smoke_compose.py
+      - name: Recoger logs
+        if: always()
+        run: docker compose -p subocol-ci -f subocol-infra/compose.yaml logs --no-color > compose.log 2>&1 || true
+      - name: Detener entorno aislado
+        if: always()
+        run: docker compose -p subocol-ci -f subocol-infra/compose.yaml down || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verificacion-compose
+          path: compose.log

@@ -9,7 +9,8 @@
     "test": "ng test",
     "start:cloud": "ng serve --configuration production",
     "build:local": "ng build --configuration development",
-    "test:ci": "ng test --watch=false"
+    "test:ci": "ng test --watch=false",
+    "build:docker": "ng build --configuration production,docker"
   },
   "private": true,
   "packageManager": "npm@11.21.2",
