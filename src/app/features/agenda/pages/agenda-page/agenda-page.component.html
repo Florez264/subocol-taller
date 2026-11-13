@@ -1,0 +1,206 @@
+<div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <p class="text-xs font-bold tracking-[.15em] text-orange-700">RECEPCIÓN Y ENTREGA</p>
+    <h1 class="mt-2 text-3xl font-semibold">Agenda de citas</h1>
+    <p class="mt-2 text-sm text-slate-500">
+      Gestiona las citas del taller. Horario de Colombia (UTC−5).
+    </p>
+  </div>
+  <a class="primary" [routerLink]="'/' + rutas.NuevaCita">+ Agendar cita</a>
+</div>
+<div class="mb-5 flex flex-wrap gap-3">
+  <a class="secondary" [routerLink]="'/' + rutas.Franjas">Franjas y cupos</a
+  ><a class="secondary" [routerLink]="'/' + rutas.Notificaciones">Notificaciones</a
+  ><button class="secondary" [disabled]="facade.vm().cargando" (click)="cargar(page)">
+    Actualizar citas
+  </button>
+</div>
+<form
+  class="panel mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-[180px_1fr_180px_auto] lg:items-end"
+  (ngSubmit)="cargar()"
+>
+  <div>
+    <label for="estadoCita" class="label">Estado</label
+    ><select class="field" id="estadoCita" name="estado" [(ngModel)]="estado">
+      <option value="">Todas</option>
+      <option value="RESERVADA">Reservadas</option>
+      <option value="CANCELADA">Canceladas</option>
+    </select>
+  </div>
+  <div>
+    <label for="ordenFiltroCita" class="label">ID de orden (opcional)</label
+    ><input class="field" id="ordenFiltroCita" name="orden" [(ngModel)]="ordenId" />
+  </div>
+  <div>
+    <label for="asesorFiltro" class="label">Asesor (opcional)</label
+    ><input class="field" id="asesorFiltro" name="asesor" [(ngModel)]="asesor" />
+  </div>
+  <button class="primary" type="submit">Buscar citas</button>
+</form>
+@if (error()) {
+  <p class="error-box mb-4" role="alert">{{ error() }}</p>
+}
+@if (facade.vm(); as vm) {
+  @if (vm.mensaje) {
+    <p class="success-box mb-4" role="status">{{ vm.mensaje }}</p>
+  }
+  @if (vm.operacionError) {
+    <p class="error-box mb-4" role="alert">
+      {{ vm.operacionError }} Actualiza la información antes de repetir el envío.
+    </p>
+  }
+  @if (vm.error) {
+    <p class="error-box mb-4" role="alert">{{ vm.error }}</p>
+  }
+  <section
+    class="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+    aria-label="Citas"
+    [attr.aria-busy]="vm.cargando"
+  >
+    @if (vm.cargando) {
+      <p role="status" class="p-10 text-center text-sm">Consultando citas…</p>
+    } @else if (vm.pagina; as p) {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-stone-50 text-xs text-slate-500">
+            <tr>
+              <th scope="col" class="px-5 py-3">Horario</th>
+              <th scope="col" class="px-5 py-3">Tipo y asesor</th>
+              <th scope="col" class="px-5 py-3">Estado</th>
+              <th scope="col" class="px-5 py-3">Orden</th>
+              <th scope="col" class="px-5 py-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (cita of p.content; track cita.id) {
+              <tr>
+                <td class="whitespace-nowrap px-5 py-4 font-medium">
+                  {{ cita.inicio | date: 'dd/MM/yyyy HH:mm' : '-0500'
+                  }}<span class="block text-xs font-normal text-slate-500"
+                    >Hasta {{ cita.fin | date: 'HH:mm' : '-0500' }}</span
+                  >
+                </td>
+                <td class="px-5 py-4">
+                  {{ cita.tipo }}<span class="block text-xs text-slate-500">{{ cita.asesor }}</span>
+                </td>
+                <td class="px-5 py-4">
+                  <span class="badge">{{ cita.estado }}</span>
+                </td>
+                <td class="px-5 py-4">
+                  <a
+                    class="font-mono text-xs text-orange-700 underline"
+                    [routerLink]="detalleOrden(cita.ordenId)"
+                    [title]="cita.ordenId"
+                    >{{ cita.ordenId.slice(0, 8) }}</a
+                  >
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex flex-wrap gap-2">
+                    <button class="secondary" (click)="ver(cita.id)">Ver detalle</button
+                    ><a
+                      class="secondary"
+                      [routerLink]="'/' + rutas.Notificaciones"
+                      [queryParams]="{ citaId: cita.id }"
+                      >Avisos</a
+                    >
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="p-12 text-center text-slate-500">
+                  No hay citas con estos filtros. Puedes agendar una arriba.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <footer class="flex items-center justify-between gap-3 border-t border-slate-100 p-4">
+        <span class="text-xs text-slate-500"
+          >{{ p.totalElements }} citas · Página {{ p.page + 1 }} de {{ p.totalPages || 1 }}</span
+        >
+        <div class="flex gap-2">
+          <button class="secondary" [disabled]="p.first" (click)="cargar(p.page - 1)">
+            Anterior</button
+          ><button class="secondary" [disabled]="p.last" (click)="cargar(p.page + 1)">
+            Siguiente
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+  @if (detalleAbierto()) {
+    <section class="panel mt-6">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-xl font-semibold">Detalle de la cita</h2>
+        <button class="secondary" (click)="detalleAbierto.set(false)">Cerrar detalle</button>
+      </div>
+      @if (vm.citaCargando) {
+        <p role="status" class="mt-5 text-sm">Consultando cita…</p>
+      }
+      @if (vm.citaError) {
+        <p role="alert" class="error-box mt-4">{{ vm.citaError }}</p>
+      }
+      @if (vm.cita; as c) {
+        <p class="mt-4 break-all font-mono text-xs text-slate-500">{{ c.id }}</p>
+        <div class="mt-5 grid gap-5 sm:grid-cols-3">
+          <div>
+            <p class="label">Estado</p>
+            <p>{{ c.estado }}</p>
+          </div>
+          <div>
+            <p class="label">Inicio</p>
+            <p>{{ c.inicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}</p>
+          </div>
+          <div>
+            <p class="label">Asesor</p>
+            <p>{{ c.asesor }}</p>
+          </div>
+        </div>
+        @if (c.motivoCancelacion) {
+          <p class="label mt-6">Motivo de cancelación</p>
+          <p class="whitespace-pre-wrap text-sm">{{ c.motivoCancelacion }}</p>
+          <p class="mt-2 text-xs text-slate-500">
+            Por {{ c.canceladaPor }} · {{ c.fechaCancelacion | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
+          </p>
+        }
+        @if (puedeCancelar(c)) {
+          <form
+            class="mt-6 space-y-4 border-t border-slate-200 pt-5"
+            [formGroup]="cancelacion"
+            (ngSubmit)="cancelar()"
+          >
+            <h3 class="font-semibold">Cancelar manualmente</h3>
+            <label class="label" for="motivoCancelar">Motivo obligatorio</label
+            ><textarea
+              id="motivoCancelar"
+              class="field min-h-24"
+              formControlName="motivo"
+              maxlength="500"
+              required
+            ></textarea
+            ><label class="flex items-start gap-2 text-sm"
+              ><input type="checkbox" formControlName="confirmar" class="mt-1" /> Confirmo la
+              cancelación. Se registrará un aviso para el cliente.</label
+            >
+            @if (cancelacion.touched && cancelacion.invalid) {
+              <p class="text-sm text-red-700">Escribe el motivo y confirma la cancelación.</p>
+            }
+            <button
+              class="rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white"
+              type="submit"
+              [disabled]="vm.operando"
+            >
+              {{ vm.operando ? 'Cancelando…' : 'Cancelar cita' }}
+            </button>
+          </form>
+        } @else if (c.estado === 'RESERVADA') {
+          <p class="mt-5 text-sm text-slate-500">
+            La franja ya comenzó; no admite cancelación manual.
+          </p>
+        }
+      }
+    </section>
+  }
+}

@@ -1,0 +1,93 @@
+<a class="text-sm text-orange-700" [routerLink]="'/' + rutas.Agenda">← Volver a citas</a>
+<div class="mt-4 mb-6 flex flex-wrap justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-semibold">Notificaciones</h1>
+    <p class="mt-2 text-sm text-slate-500">Consulta los avisos de agenda y cancelación manual.</p>
+  </div>
+  <button class="secondary" [disabled]="vm().notificacionesCargando" (click)="cargar(page)">
+    Actualizar
+  </button>
+</div>
+<p class="mb-6 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+  Aceptada significa que Meta recibió el mensaje, no confirma su entrega. Simulada corresponde al
+  modo de registro en log. El procesador puede tardar alrededor de un minuto; usa Actualizar para
+  consultar de nuevo.
+</p>
+<form
+  class="panel mb-5 grid gap-4 sm:grid-cols-[1fr_220px_auto] sm:items-end"
+  (ngSubmit)="cargar()"
+>
+  <div>
+    <label class="label" for="citaNotificacion">Identificador de cita (opcional)</label
+    ><input class="field" id="citaNotificacion" name="cita" [(ngModel)]="citaId" />
+  </div>
+  <div>
+    <label class="label" for="estadoNotificacion">Estado</label
+    ><select class="field" id="estadoNotificacion" name="estado" [(ngModel)]="estado">
+      <option value="">Todos</option>
+      @for (e of estados; track e) {
+        <option [value]="e">{{ e }}</option>
+      }
+    </select>
+  </div>
+  <button class="primary" type="submit">Filtrar</button>
+</form>
+@if (error()) {
+  <p class="error-box mb-4" role="alert">{{ error() }}</p>
+}
+@if (vm().mensaje) {
+  <p class="success-box mb-4" role="status">{{ vm().mensaje }}</p>
+}
+@if (vm().operacionError) {
+  <p class="error-box mb-4" role="alert">{{ vm().operacionError }}</p>
+}
+@if (vm().notificacionesError) {
+  <p class="error-box mb-4" role="alert">{{ vm().notificacionesError }}</p>
+}
+@if (vm().notificacionesCargando) {
+  <p class="panel" role="status">Consultando notificaciones…</p>
+} @else if (vm().notificaciones; as p) {
+  <section class="panel">
+    <div class="space-y-4">
+      @for (n of p.content; track n.id) {
+        <article
+          class="flex flex-wrap justify-between gap-4 rounded-xl border border-slate-200 p-4"
+        >
+          <div class="min-w-0">
+            <p class="font-semibold">
+              {{ n.evento === 'AGENDADA' ? 'Cita agendada' : 'Cancelación manual' }}
+            </p>
+            <p class="mt-2 text-xs text-slate-500">
+              {{ n.creada | date: 'dd/MM/yyyy HH:mm' : '-0500' }} · {{ n.intentos }} intentos
+            </p>
+            <p class="mt-2 break-all font-mono text-xs text-slate-500">Cita {{ n.citaId }}</p>
+            @if (n.codigoError) {
+              <p class="mt-2 text-sm text-red-700">Código: {{ n.codigoError }}</p>
+            }
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="badge">{{ n.estado }}</span>
+            @if (n.estado === 'FALLIDA') {
+              <button class="secondary" [disabled]="vm().operando" (click)="reintentar(n.id)">
+                Reintentar
+              </button>
+            }
+          </div>
+        </article>
+      } @empty {
+        <p class="py-8 text-center text-sm text-slate-500">
+          No hay notificaciones con estos filtros.
+        </p>
+      }
+    </div>
+    <footer class="mt-5 flex justify-between items-center gap-3">
+      <p class="text-xs text-slate-500">Página {{ p.page + 1 }} de {{ p.totalPages || 1 }}</p>
+      <div class="flex gap-2">
+        <button class="secondary" [disabled]="p.first" (click)="cargar(p.page - 1)">Anterior</button
+        ><button class="secondary" [disabled]="p.last" (click)="cargar(p.page + 1)">
+          Siguiente
+        </button>
+      </div>
+    </footer>
+  </section>
+}

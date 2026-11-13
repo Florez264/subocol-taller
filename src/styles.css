@@ -1,0 +1,209 @@
+@import 'tailwindcss';
+@theme {
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
+}
+@layer base {
+  body {
+    @apply m-0 bg-stone-50 text-slate-900 antialiased;
+  }
+  button,
+  a,
+  input,
+  select {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600;
+  }
+  button {
+    @apply cursor-pointer disabled:cursor-not-allowed disabled:opacity-40;
+  }
+}
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm;
+  }
+  .primary {
+    @apply rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700;
+  }
+  .secondary {
+    @apply rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50;
+  }
+  .badge {
+    @apply inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-2xl border border-slate-200 bg-white p-5 sm:p-6;
+  }
+  .label {
+    @apply mb-2 block text-xs font-semibold text-slate-600;
+  }
+  .error-box {
+    @apply rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800;
+  }
+  .success-box {
+    @apply rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800;
+  }
+}
+
+/* Shared workspace surfaces, including lazily loaded feature pages. */
+:root {
+  color-scheme: light;
+  --workspace-bg: #f1f5f9;
+  --surface: #fff;
+  --ink: #172b4d;
+}
+body {
+  background: var(--workspace-bg);
+  color: var(--ink);
+}
+h1 {
+  letter-spacing: -0.035em;
+}
+.panel {
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.035);
+}
+.field {
+  min-height: 44px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.field:focus {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgb(234 88 12 / 0.1);
+  outline: none;
+}
+.workspace-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+main {
+  width: 100%;
+}
+main > *,
+form > *,
+article {
+  min-width: 0;
+}
+footer {
+  flex-wrap: wrap;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+  --workspace-bg: #0b1220;
+  --surface: #111c2e;
+  --ink: #e2e8f0;
+}
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .panel,
+[data-theme='dark'] .field,
+[data-theme='dark'] .secondary {
+  background: var(--surface);
+  color: var(--ink);
+}
+[data-theme='dark'] .bg-stone-50,
+[data-theme='dark'] .bg-slate-50 {
+  background: #162238;
+}
+[data-theme='dark'] .border-slate-200,
+[data-theme='dark'] .border-slate-300,
+[data-theme='dark'] .panel,
+[data-theme='dark'] .field,
+[data-theme='dark'] .secondary {
+  border-color: #334155;
+}
+[data-theme='dark'] .text-slate-500,
+[data-theme='dark'] .text-slate-600,
+[data-theme='dark'] .label {
+  color: #a7b7cd;
+}
+[data-theme='dark'] .text-slate-900,
+[data-theme='dark'] .text-slate-700 {
+  color: #e2e8f0;
+}
+[data-theme='dark'] .badge,
+[data-theme='dark'] .bg-slate-100 {
+  background: #26364d;
+  color: #e2e8f0;
+}
+[data-theme='dark'] .bg-orange-50 {
+  background: #332517;
+  color: #fdba74;
+}
+[data-theme='dark'] .text-orange-700 {
+  color: #fdba74;
+}
+[data-theme='dark'] .success-box {
+  background: #092d27;
+  color: #a7f3d0;
+  border-color: #166851;
+}
+[data-theme='dark'] .error-box {
+  background: #391a24;
+  color: #fecdd3;
+  border-color: #9f3852;
+}
+[data-theme='dark'] .secondary:hover {
+  background: #24334a;
+}
+@media (max-width: 1023px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+@media (max-width: 639px) {
+  .workspace-header {
+    position: static;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    max-width: 100%;
+  }
+  h1 {
+    font-size: 1.65rem !important;
+  }
+  footer {
+    align-items: flex-start;
+    gap: 16px;
+  }
+  footer .secondary {
+    padding: 8px 12px;
+  }
+  main {
+    padding: 20px 16px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.historial-expandible summary {
+  list-style: none;
+}
+.historial-expandible summary::-webkit-details-marker {
+  display: none;
+}
+.historial-ocultar {
+  display: none;
+}
+.historial-expandible[open] .historial-ver {
+  display: none;
+}
+.historial-expandible[open] .historial-ocultar {
+  display: inline;
+}
+.historial-expandible[open] .historial-flecha {
+  transform: rotate(180deg);
+}
+.historial-flecha {
+  display: inline-block;
+}

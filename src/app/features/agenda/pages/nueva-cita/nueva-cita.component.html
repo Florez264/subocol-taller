@@ -1,0 +1,200 @@
+<a class="text-sm text-orange-700" [routerLink]="'/' + rutas.Agenda">← Volver a citas</a>
+<h1 class="mt-4 text-3xl font-semibold">Agendar cita</h1>
+<p class="mt-2 mb-7 text-sm text-slate-500">
+  Selecciona una orden y una franja disponible. Horario de Colombia (UTC−5).
+</p>
+<form (ngSubmit)="buscarOrdenes()" class="panel mb-5 flex flex-wrap items-end gap-3">
+  <div class="min-w-48 flex-1">
+    <label class="label" for="buscarPlacaCita">Buscar orden por placa</label
+    ><input
+      class="field uppercase"
+      id="buscarPlacaCita"
+      name="placa"
+      [(ngModel)]="placa"
+      placeholder="ABC123"
+    />
+  </div>
+  <button class="secondary" type="submit">Buscar orden</button
+  ><a class="secondary" [routerLink]="'/' + rutas.NuevaOrden">Crear orden</a>
+</form>
+<form [formGroup]="form" (ngSubmit)="agendar()" class="panel mb-6">
+  <h2 class="text-lg font-semibold">1. Orden de servicio</h2>
+  @if (ordenes().error) {
+    <p class="error-box mt-4" role="alert">{{ ordenes().error }}</p>
+  }
+  @if (ordenes().cargando) {
+    <p role="status" class="py-5 text-sm text-slate-500">Buscando órdenes…</p>
+  } @else if (ordenes().pagina; as p) {
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      @for (o of p.content; track o.id) {
+        <label class="flex items-start gap-3 rounded-xl border border-slate-200 p-4"
+          ><input
+            type="radio"
+            formControlName="ordenId"
+            [value]="o.id"
+            [disabled]="o.estado === 'CERRADA'"
+            class="mt-1"
+          /><span
+            ><strong>{{ o.vehiculo.placa }}</strong
+            ><span class="block text-sm text-slate-600">{{ o.cliente.nombre }}</span
+            ><span class="text-xs text-slate-500">{{ o.estado }}</span></span
+          ></label
+        >
+      } @empty {
+        <p class="text-sm text-slate-500">No hay órdenes con esa placa.</p>
+      }
+    </div>
+    <div class="mt-4 flex justify-between items-center">
+      <span class="text-xs text-slate-500">Página {{ p.page + 1 }} de {{ p.totalPages || 1 }}</span>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          class="secondary"
+          [disabled]="p.first"
+          (click)="buscarOrdenes(p.page - 1)"
+        >
+          Anterior</button
+        ><button
+          type="button"
+          class="secondary"
+          [disabled]="p.last"
+          (click)="buscarOrdenes(p.page + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  }
+  @if (ordenes().detalleCargando) {
+    <p role="status" class="mt-4 text-sm">Verificando orden seleccionada…</p>
+  }
+  @if (ordenSeleccionada(); as o) {
+    <p class="mt-4 rounded-xl bg-orange-50 p-3 text-sm">
+      Orden seleccionada: <strong>{{ o.vehiculo.placa }}</strong> · {{ o.cliente.nombre }} ·
+      {{ o.estado }}
+    </p>
+  }
+  @if (ordenes().detalleError) {
+    <p class="error-box mt-3" role="alert">{{ ordenes().detalleError }}</p>
+  }
+  <h2 class="mt-8 text-lg font-semibold">2. Franja y tipo de cita</h2>
+  <div class="mt-4 grid gap-5 sm:grid-cols-2">
+    <div>
+      <label for="franjaCita" class="label">Franja disponible</label
+      ><select id="franjaCita" class="field" formControlName="franjaId">
+        <option value="">Selecciona una franja</option>
+        @for (f of vm().franjas?.content || []; track f.id) {
+          <option [value]="f.id" [disabled]="f.disponibles < 1">
+            {{ f.inicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }} · {{ f.asesor }} ·
+            {{ f.disponibles }} cupos
+          </option>
+        }
+      </select>
+    </div>
+    <div>
+      <label for="tipoCita" class="label">Tipo</label
+      ><select id="tipoCita" class="field" formControlName="tipo">
+        <option value="INGRESO">Ingreso del vehículo</option>
+        <option value="ENTREGA">Entrega del vehículo reparado</option>
+      </select>
+    </div>
+  </div>
+  <p class="mt-3 text-xs text-slate-500">
+    El servidor vuelve a comprobar el cupo al guardar. Las citas de entrega requieren una orden
+    reparada.
+  </p>
+  @if (vm().franjasCargando) {
+    <p role="status" class="mt-3 text-sm">Consultando franjas…</p>
+  }
+  @if (vm().franjasError) {
+    <p role="alert" class="error-box mt-3">{{ vm().franjasError }}</p>
+  }
+  @if (error()) {
+    <p role="alert" class="error-box mt-4">{{ error() }}</p>
+  }
+  @if (vm().operacionError) {
+    <p role="alert" class="error-box mt-4">
+      {{ vm().operacionError }} Si hubo un corte de conexión, consulta las citas antes de repetir el
+      envío.
+    </p>
+  }
+  @if (form.touched && form.invalid) {
+    <p class="mt-3 text-sm text-red-700">Selecciona una orden y una franja para continuar.</p>
+  }
+  <button
+    class="primary mt-6"
+    type="submit"
+    [disabled]="vm().operando || vm().franjasCargando || ordenes().detalleCargando"
+  >
+    {{ vm().operando ? 'Agendando…' : 'Confirmar cita' }}
+  </button>
+</form>
+<form (ngSubmit)="buscarFranjas()" class="panel">
+  <div class="flex flex-wrap justify-between gap-3">
+    <h2 class="text-lg font-semibold">Buscar otras franjas</h2>
+    <a class="text-sm font-semibold text-orange-700" [routerLink]="'/' + rutas.Franjas"
+      >Crear o consultar franjas →</a
+    >
+  </div>
+  <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div>
+      <label class="label" for="desdeCita">Desde</label
+      ><input
+        class="field"
+        id="desdeCita"
+        name="desde"
+        type="datetime-local"
+        [(ngModel)]="rango.desde"
+        (ngModelChange)="filtrosCambiaron()"
+        required
+      />
+    </div>
+    <div>
+      <label class="label" for="hastaCita">Hasta</label
+      ><input
+        class="field"
+        id="hastaCita"
+        name="hasta"
+        type="datetime-local"
+        [(ngModel)]="rango.hasta"
+        (ngModelChange)="filtrosCambiaron()"
+        required
+      />
+    </div>
+    <div>
+      <label class="label" for="asesorCita">Asesor (opcional)</label
+      ><input
+        id="asesorCita"
+        class="field"
+        name="asesor"
+        [(ngModel)]="asesor"
+        (ngModelChange)="filtrosCambiaron()"
+      />
+    </div>
+    <button class="secondary self-end" type="submit">Actualizar</button>
+  </div>
+  @if (vm().franjas; as p) {
+    <div class="mt-5 flex justify-between items-center">
+      <span class="text-xs text-slate-500"
+        >{{ p.totalElements }} franjas · Página {{ p.page + 1 }} de {{ p.totalPages || 1 }}</span
+      >
+      <div class="flex gap-2">
+        <button
+          class="secondary"
+          type="button"
+          [disabled]="p.first"
+          (click)="buscarFranjas(p.page - 1)"
+        >
+          Anterior</button
+        ><button
+          class="secondary"
+          type="button"
+          [disabled]="p.last"
+          (click)="buscarFranjas(p.page + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  }
+</form>

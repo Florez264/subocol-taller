@@ -1,0 +1,140 @@
+<a class="text-sm text-orange-700" [routerLink]="'/' + rutas.Agenda">← Volver a citas</a>
+<h1 class="mt-4 text-3xl font-semibold">Franjas y capacidad</h1>
+<p class="mt-2 mb-7 text-sm text-slate-500">
+  Cada franja dura 30 minutos. Todos los horarios corresponden a Colombia (UTC−5).
+</p>
+@if (vm().mensaje) {
+  <p class="success-box mb-5" role="status">{{ vm().mensaje }}</p>
+}
+@if (vm().operacionError) {
+  <p class="error-box mb-5" role="alert">{{ vm().operacionError }}</p>
+}
+<form class="panel mb-6" [formGroup]="form" (ngSubmit)="crear()">
+  <h2 class="text-lg font-semibold">Crear franja para {{ session.usuario() }}</h2>
+  <div class="mt-5 grid gap-4 sm:grid-cols-[1fr_160px_auto] sm:items-end">
+    <div>
+      <label for="inicioFranja" class="label">Fecha y hora de inicio</label
+      ><input
+        id="inicioFranja"
+        type="datetime-local"
+        step="1800"
+        class="field"
+        formControlName="inicio"
+        required
+      />
+    </div>
+    <div>
+      <label for="cupo" class="label">Cupo (1 a 10)</label
+      ><input
+        id="cupo"
+        type="number"
+        min="1"
+        max="10"
+        step="1"
+        class="field"
+        formControlName="cupo"
+        required
+      />
+    </div>
+    <button class="primary" type="submit" [disabled]="vm().operando">
+      {{ vm().operando ? 'Guardando…' : 'Crear franja' }}
+    </button>
+  </div>
+  @if (error()) {
+    <p class="error-box mt-4" role="alert">{{ error() }}</p>
+  }
+  @if (form.touched && form.invalid) {
+    <p class="mt-3 text-sm text-red-700">Indica una fecha válida y un cupo entero entre 1 y 10.</p>
+  }
+</form>
+<p class="mb-3 text-xs text-slate-500">
+  Los filtros se aplican automáticamente al cambiar las fechas o el asesor.
+</p>
+<form
+  class="panel mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end"
+  (ngSubmit)="cargar(0)"
+>
+  <div>
+    <label class="label" for="desdeFranja">Desde</label
+    ><input
+      id="desdeFranja"
+      name="desde"
+      class="field"
+      type="datetime-local"
+      [(ngModel)]="rango.desde"
+      (ngModelChange)="filtrosCambiaron()"
+      required
+    />
+  </div>
+  <div>
+    <label class="label" for="hastaFranja">Hasta</label
+    ><input
+      id="hastaFranja"
+      name="hasta"
+      class="field"
+      type="datetime-local"
+      [(ngModel)]="rango.hasta"
+      (ngModelChange)="filtrosCambiaron()"
+      required
+    />
+  </div>
+  <div>
+    <label class="label" for="asesorFranja">Asesor (opcional)</label
+    ><input
+      id="asesorFranja"
+      class="field"
+      name="asesor"
+      [(ngModel)]="asesor"
+      (ngModelChange)="filtrosCambiaron()"
+      placeholder="Todos"
+    />
+  </div>
+  <button class="secondary" type="submit">Actualizar</button>
+</form>
+@if (errorRango()) {
+  <p role="alert" class="error-box mb-4">{{ errorRango() }}</p>
+}
+@if (vm().franjasError) {
+  <p role="alert" class="error-box mb-4">{{ vm().franjasError }}</p>
+}
+@if (vm().franjasCargando) {
+  <p role="status" class="panel">Consultando disponibilidad…</p>
+} @else if (vm().franjas; as p) {
+  <section class="panel">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      @for (f of p.content; track f.id) {
+        <article class="rounded-xl border border-slate-200 p-4">
+          <p class="font-semibold">
+            {{ f.inicio | date: 'dd/MM/yyyy HH:mm' : '-0500' }}–{{
+              f.fin | date: 'HH:mm' : '-0500'
+            }}
+          </p>
+          <p class="mt-2 text-sm text-slate-500">Asesor {{ f.asesor }}</p>
+          <p class="mt-3 text-sm">
+            <strong>{{ f.disponibles }}</strong> disponibles de {{ f.cupo }}
+          </p>
+          @if (f.disponibles > 0) {
+            <a
+              class="mt-3 inline-block text-sm font-semibold text-orange-700"
+              [routerLink]="'/' + rutas.NuevaCita"
+              >Agendar una cita →</a
+            >
+          } @else {
+            <span class="badge mt-3">Sin cupos</span>
+          }
+        </article>
+      } @empty {
+        <p class="text-sm text-slate-500">No hay franjas en este rango. Puedes crear una arriba.</p>
+      }
+    </div>
+    <footer class="mt-5 flex justify-between items-center gap-2">
+      <p class="text-xs text-slate-500">Página {{ p.page + 1 }} de {{ p.totalPages || 1 }}</p>
+      <div class="flex gap-2">
+        <button class="secondary" (click)="cargar(p.page - 1)" [disabled]="p.first">Anterior</button
+        ><button class="secondary" (click)="cargar(p.page + 1)" [disabled]="p.last">
+          Siguiente
+        </button>
+      </div>
+    </footer>
+  </section>
+}

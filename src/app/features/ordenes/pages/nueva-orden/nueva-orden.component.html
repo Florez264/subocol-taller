@@ -1,0 +1,138 @@
+<a class="text-sm font-medium text-orange-700" [routerLink]="'/' + rutas.Ordenes"
+  >← Volver a órdenes</a
+>
+<h1 class="mt-4 text-3xl font-semibold">Nueva orden de servicio</h1>
+<p class="mt-2 mb-8 text-sm text-slate-500">
+  Registra al cliente, su vehículo y el trabajo solicitado.
+</p>
+<form [formGroup]="form" (ngSubmit)="guardar()" class="panel space-y-6">
+  <div class="grid gap-5 sm:grid-cols-2">
+    <div>
+      <label for="nombre" class="label">Nombre completo</label
+      ><input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        maxlength="150"
+        class="field"
+        required
+      />
+    </div>
+    <div>
+      <label for="documento" class="label">Documento</label
+      ><input
+        id="documento"
+        type="text"
+        formControlName="documento"
+        maxlength="30"
+        class="field"
+        required
+      />
+    </div>
+    <div>
+      <label for="telefono" class="label">Teléfono con indicativo</label
+      ><input
+        id="telefono"
+        type="tel"
+        formControlName="telefono"
+        maxlength="16"
+        class="field"
+        required
+      />
+    </div>
+    <div>
+      <label for="placa" class="label">Placa (5 a 10 letras o números)</label
+      ><input
+        id="placa"
+        type="text"
+        formControlName="placa"
+        maxlength="10"
+        class="field"
+        required
+      />
+    </div>
+    <div>
+      <label for="marca" class="label">Marca</label
+      ><input
+        id="marca"
+        type="text"
+        formControlName="marca"
+        maxlength="60"
+        class="field"
+        required
+      />
+    </div>
+    <div>
+      <label for="modelo" class="label">Modelo o referencia</label
+      ><input
+        id="modelo"
+        type="text"
+        formControlName="modelo"
+        maxlength="60"
+        class="field"
+        required
+      />
+    </div>
+  </div>
+  <p class="text-xs text-slate-500">
+    Teléfono: entre 7 y 15 dígitos, con + opcional. Ejemplo de Colombia: +573001234567.
+  </p>
+  <div>
+    <label for="descripcion" class="label">Trabajo solicitado</label
+    ><textarea
+      id="descripcion"
+      class="field min-h-28"
+      formControlName="descripcion"
+      maxlength="2000"
+      required
+    ></textarea>
+  </div>
+  <label class="flex gap-3 items-center text-sm"
+    ><input type="checkbox" formControlName="asegurada" /> Esta orden corresponde a una
+    aseguradora</label
+  >
+  @if (form.controls.asegurada.value) {
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div>
+        <label for="codigoAseguradora" class="label">Código de la aseguradora</label
+        ><input
+          id="codigoAseguradora"
+          formControlName="codigoAseguradora"
+          class="field"
+          maxlength="40"
+        />
+      </div>
+      <div>
+        <label for="nombreAseguradora" class="label">Nombre de la aseguradora</label
+        ><input
+          id="nombreAseguradora"
+          formControlName="nombreAseguradora"
+          class="field"
+          maxlength="150"
+        />
+      </div>
+      <p class="text-xs text-slate-500 sm:col-span-2">
+        Las aseguradoras reservadas para integración no admiten registro manual.
+      </p>
+    </div>
+  }
+  @if (form.touched && form.invalid) {
+    <p role="alert" class="error-box">
+      Revisa los campos obligatorios y sus formatos antes de continuar.
+    </p>
+  }
+  @if (vm().operacionError) {
+    <p role="alert" class="error-box">
+      {{ vm().operacionError }} Si hubo un corte de conexión, consulta el listado antes de volver a
+      crearla.
+    </p>
+  }
+  <div class="flex gap-3">
+    <button class="primary" type="submit" [disabled]="vm().operando">
+      {{ vm().operando ? 'Guardando…' : 'Crear orden' }}</button><a
+      class="secondary"
+      [routerLink]="'/' + rutas.Ordenes"
+      >Volver al listado</a
+    >
+  </div>
+</form>

@@ -1,0 +1,191 @@
+<a class="text-sm font-medium text-orange-700" [routerLink]="'/' + rutas.Ordenes"
+  >← Volver a órdenes</a
+>
+<div class="mt-4 mb-7 flex justify-between gap-4">
+  <h1 class="text-3xl font-semibold">Detalle de la orden</h1>
+  <button class="secondary" (click)="cargar()" [disabled]="vm().detalleCargando || vm().operando">
+    Actualizar
+  </button>
+</div>
+@if (vm().mensaje) {
+  <p role="status" class="success-box mb-5">{{ vm().mensaje }}</p>
+}
+@if (vm().operacionError) {
+  <p role="alert" class="error-box mb-5">
+    {{ vm().operacionError }} Actualiza la orden antes de repetir la operación.
+  </p>
+}
+@if (vm().detalleError) {
+  <p role="alert" class="error-box">{{ vm().detalleError }}</p>
+}
+@if (vm().detalleCargando) {
+  <p role="status" class="panel">Consultando orden e historial…</p>
+}
+@if (vm().orden; as o) {
+  <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
+    <section class="panel">
+      <div class="flex justify-between items-start gap-3">
+        <div>
+          <p class="text-xs text-slate-500">VEHÍCULO</p>
+          <h2 class="mt-1 text-3xl font-bold tracking-wide">{{ o.vehiculo.placa }}</h2>
+          <p class="mt-2 text-slate-600">{{ o.vehiculo.marca }} {{ o.vehiculo.modelo }}</p>
+        </div>
+        <span class="badge">{{ etiqueta(o.estado) }}</span>
+      </div>
+      <dl class="mt-7 grid gap-5 sm:grid-cols-2">
+        <div>
+          <dt class="label">Cliente</dt>
+          <dd>{{ o.cliente.nombre }}</dd>
+        </div>
+        <div>
+          <dt class="label">Documento</dt>
+          <dd>{{ o.cliente.documento }}</dd>
+        </div>
+        <div>
+          <dt class="label">Teléfono</dt>
+          <dd>{{ o.cliente.telefono }}</dd>
+        </div>
+        <div>
+          <dt class="label">Aseguradora</dt>
+          <dd>{{ o.aseguradora?.nombre || 'Particular' }}</dd>
+        </div>
+      </dl>
+      <h3 class="label mt-6">Trabajo solicitado</h3>
+      <p class="whitespace-pre-wrap text-sm leading-6">{{ o.descripcion }}</p>
+      <p class="mt-6 break-all font-mono text-xs text-slate-500">Orden {{ o.id }}</p>
+      <a
+        class="secondary mt-5 inline-block"
+        [routerLink]="'/' + rutas.NuevaCita"
+        [queryParams]="{ ordenId: o.id }"
+        >Agendar cita para esta orden</a
+      >
+    </section>
+    <form
+      class="panel space-y-4"
+      [formGroup]="form"
+      (ngSubmit)="actualizar(o.estado === 'CERRADA')"
+    >
+      <h2 class="text-lg font-semibold">
+        {{ o.estado === 'CERRADA' ? 'Reabrir orden' : 'Avanzar estado' }}
+      </h2>
+      @if (o.estado !== 'CERRADA') {
+        <div>
+          <label class="label" for="nuevoEstado">Siguiente estado</label
+          ><select id="nuevoEstado" class="field" formControlName="estado">
+            @for (estado of siguientes(o.estado); track estado) {
+              <option [value]="estado">{{ etiqueta(estado) }}</option>
+            }
+          </select>
+        </div>
+      } @else {
+        <p class="text-sm text-slate-500">
+          La orden volverá a diagnóstico. El motivo quedará en el historial.
+        </p>
+      }
+      <div>
+        <label class="label" for="motivoEstado">Motivo del cambio</label
+        ><textarea
+          id="motivoEstado"
+          class="field min-h-28"
+          formControlName="motivo"
+          maxlength="500"
+          required
+        ></textarea>
+      </div>
+      @if (form.controls.motivo.touched && form.controls.motivo.invalid) {
+        <p class="text-sm text-red-700">Escribe un motivo de hasta 500 caracteres.</p>
+      }
+      @if (form.controls.estado.value === 'CERRADA' && o.estado !== 'CERRADA') {
+        <p class="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+          Al cerrar, Agenda cancelará automáticamente las citas pendientes sin enviar un aviso de
+          cancelación por WhatsApp. La sincronización puede tardar unos segundos; después actualiza
+          la agenda.
+        </p>
+        <label class="flex items-start gap-2 text-sm"
+          ><input type="checkbox" formControlName="confirmarCierre" class="mt-1" /> Confirmo que
+          deseo cerrar esta orden.</label
+        >
+      }
+      <button
+        class="primary w-full"
+        type="submit"
+        [disabled]="
+          vm().operando ||
+          vm().detalleCargando ||
+          !!vm().detalleError ||
+          form.controls.motivo.invalid ||
+          (form.controls.estado.value === 'CERRADA' &&
+            !form.controls.confirmarCierre.value &&
+            o.estado !== 'CERRADA')
+        "
+      >
+        {{
+          vm().operando
+            ? 'Guardando…'
+            : o.estado === 'CERRADA'
+              ? 'Reabrir con motivo'
+              : 'Guardar cambio'
+        }}
+      </button>
+    </form>
+  </div>
+  <details class="panel mt-6 historial-expandible">
+    <summary
+      class="flex cursor-pointer flex-wrap items-center justify-between gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
+    >
+      <span>
+        <span class="block text-xl font-semibold">Historial de estados</span>
+        <span class="mt-1 block text-sm text-slate-500"
+          >{{ vm().historial?.totalElements || 0 }} registros · Usuario, fecha y motivo de cada
+          cambio</span
+        >
+      </span>
+      <span class="badge"
+        ><span class="historial-ver">Ver historial</span
+        ><span class="historial-ocultar">Ocultar historial</span
+        ><span class="historial-flecha ml-2" aria-hidden="true">⌄</span></span
+      >
+    </summary>
+    <p class="mt-4 text-sm text-slate-500">Horario de Colombia (UTC−5).</p>
+    @if (vm().historial; as h) {
+      <ol class="mt-6 space-y-6">
+        @for (cambio of h.content; track cambio.id) {
+          <li class="border-l-2 border-orange-200 pl-5">
+            <div class="flex flex-wrap justify-between gap-2">
+              <h3 class="text-sm font-semibold">
+                {{ etiqueta(cambio.anterior) }} → {{ etiqueta(cambio.nuevo) }}
+              </h3>
+              <time class="text-xs text-slate-500">{{
+                cambio.fecha | date: 'dd/MM/yyyy HH:mm' : '-0500'
+              }}</time>
+            </div>
+            <p class="mt-2 whitespace-pre-wrap text-sm text-slate-600">{{ cambio.motivo }}</p>
+            <p class="mt-2 text-xs text-slate-500">Por {{ cambio.actor }}</p>
+          </li>
+        } @empty {
+          <li class="text-sm text-slate-500">No hay cambios registrados.</li>
+        }
+      </ol>
+      <div class="mt-6 flex items-center justify-between">
+        <span class="text-xs text-slate-500"
+          >Página {{ h.page + 1 }} de {{ h.totalPages || 1 }}</span
+        >
+        <div class="flex gap-2">
+          <button
+            class="secondary"
+            [disabled]="h.first || vm().detalleCargando"
+            (click)="cargar(h.page - 1)"
+          >
+            Anterior</button
+          ><button
+            class="secondary"
+            [disabled]="h.last || vm().detalleCargando"
+            (click)="cargar(h.page + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+    }
+  </details>
+}
