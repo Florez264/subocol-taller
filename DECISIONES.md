@@ -75,11 +75,15 @@ No consideré suficiente la primera versión de la interfaz, que permitía consu
 
 La decisión permite validar la experiencia del asesor y la integración de extremo a extremo, además de los contratos HTTP. Postman se conserva como herramienta complementaria de diagnóstico, no como un paso obligatorio para operar el taller. Las reglas, la capacidad y las versiones siguen validándose en Java y en la base de datos; completar Angular no implica trasladar el dominio al cliente.
 
-## Priorización y trabajo fuera de alcance
+## Alcance de la solución
 
-El PDF permite priorizar y justificar. Se completó el recorrido operativo y su cancelación automática; quedaron fuera la recepción externa de grandes aseguradoras, plantillas finales en español, webhook de entrega de WhatsApp, gestión completa de identidades, observabilidad avanzada, prueba de carga y endurecimiento de producción. No se inventan códigos de grandes aseguradoras; la política de registro manual usa INTEGRATED_INSURERS.
+La solución permite registrar y consultar órdenes de servicio, avanzar sus estados, reabrirlas con motivo y conservar un historial con usuario y fecha. Incluye agenda de ingreso y entrega, capacidad por asesor y franja, cancelación manual y cancelación automática de citas pendientes al cerrar una orden, con recuperación de cupos y sin aviso de cancelación por WhatsApp.
 
-Franjas de 30 minutos y capacidad de 1 a 10 son supuestos explícitos del MVP, no límites impuestos por el PDF. Son puntos para validar con el evaluador. El consumo cloud se limita con dos servicios, una instancia MySQL, pools pequeños y heap acotado; no se promete una duración específica del saldo.
+El frontend Angular integra el recorrido operativo, con NgRx, validaciones, paginación, filtros automáticos de franjas, diseño adaptable y modo claro/oscuro. Las notificaciones funcionan mediante log o WhatsApp Cloud API; la demostración utiliza plantillas de prueba. La aplicación está desplegada en Vercel y Railway y también se ejecuta localmente con Docker Compose.
+
+La recepción externa de órdenes de grandes aseguradoras, las plantillas definitivas en español, el seguimiento de entrega por webhook, la administración completa de identidades, la observabilidad avanzada, las pruebas de carga y el endurecimiento para producción se contemplan como extensiones futuras. La restricción de registro manual por aseguradora es configurable mediante INTEGRATED_INSURERS.
+
+Las franjas duran 30 minutos y admiten entre 1 y 10 citas. Estos límites corresponden al alcance actual. La demostración utiliza dos microservicios y una instancia MySQL con bases separadas, pools pequeños y memoria Java acotada; el consumo real depende del uso y de la configuración del proveedor.
 
 ## Documentos relacionados
 
