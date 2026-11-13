@@ -26,7 +26,7 @@ Se compila producción y el ambiente `production,docker`. Docker usa localhost:8
 
 El workflow del repositorio frontend ejecuta sus pruebas, extrae el mismo ZIP de infraestructura que recibe el evaluador, clona ambos backends y ejecuta `docker compose up --build`. No usa credenciales cloud ni datos del candidato. La prueba HTTP comprueba salud, rutas de Nginx, autenticación real, versiones, reserva del último cupo, cierre automático con MySQL real, liberación y ausencia de evento de cancelación; LOG procesa el aviso de agendamiento. Al finalizar detiene el proyecto de prueba y conserva logs como artefacto.
 
-Consultar el resultado concreto del workflow en la pestaña Actions del repositorio frontend. No se presenta una validación de sintaxis como equivalente a una ejecución completa. Docker Desktop del equipo del candidato no pudo iniciar WSL durante la preparación por falta de espacio local; por eso se usa además el runner aislado de GitHub para esta comprobación.
+Resultado: [ejecución 43465340000](https://github.com/Florez264/subocol-taller/actions/runs/43465340000) completada correctamente. Pasaron Angular, extracción del ZIP, construcción/arranque de los cuatro componentes y la prueba HTTP con MySQL real. El entorno aislado se detuvo al finalizar. Consultar la pestaña Actions para los logs. No se presenta una validación de sintaxis como equivalente a una ejecución completa. Docker Desktop del equipo del candidato no pudo iniciar WSL durante la preparación por falta de espacio local; por eso se usa además el runner aislado de GitHub para esta comprobación.
 
 ## Límites
 

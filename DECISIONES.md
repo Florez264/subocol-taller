@@ -59,12 +59,21 @@ Lombok evita código repetitivo; se descartó @Data en entidades para no introdu
 - **Autenticación completa OIDC/SSO:** fuera del tiempo disponible. Se usa Basic Auth sobre HTTPS, cuentas configurables y BCrypt en el backend. El navegador conserva credenciales solo en memoria; no hay administración de usuarios ni autorización por propietario de cada orden.
 - **CORS con asterisco:** se permiten orígenes explícitos. El perfil cloud incorpora el dominio estable de Vercel; no se autorizan automáticamente previews ni rutas internas.
 
-## Dos propuestas de IA rechazadas por el candidato
+## Criterio propio y revisión de propuestas de IA
 
-Estas decisiones proceden de la conversación real; no se atribuyen al candidato rechazos que no expresó.
+Definí la arquitectura base con DDD y separación por puertos y adaptadores. Usé IA como apoyo para implementar y revisar el código, contrastando sus propuestas con las fronteras del dominio, la independencia de los servicios y el flujo que debía poder demostrar.
 
-1. **Generar automáticamente la inicialización de los dos proyectos Java.** El candidato pidió crear únicamente las carpetas y generar personalmente los proyectos en Spring Initializr. Se respetó la inicialización manual y después se trabajó sobre esos proyectos. Motivo: conservar control sobre la creación y configuración inicial de los servicios.
-2. **Organizar la entrega como un único repositorio con configuración común en la raíz.** El candidato indicó que no iba a subir todo en un solo repositorio y pidió reorganizarlo por repositorios separados. Se separaron Órdenes, Agenda, frontend y los archivos de integración; cada backend conserva su configuración y Dockerfile. Motivo: poder versionar, construir y desplegar cada componente de manera independiente, manteniendo Compose como punto de integración local. La separación de repositorios es una elección del candidato, no una condición obligatoria de toda arquitectura de microservicios.
+### 1. Configuración y despliegue acoplados a una raíz común
+
+Descarté la organización inicial que concentraba la integración y configuración de los backends en una raíz compartida. Para esta entrega quería poder versionar y desplegar cada microservicio por separado, sin que su construcción o arranque dependiera de archivos privados ubicados fuera de su propio contexto.
+
+Por eso cada servicio tiene su repositorio, Dockerfile, variables de entorno, migraciones y documentación. Compose queda como una herramienta de integración local: conecta servicios por HTTP, pero no sustituye su configuración autónoma. El criterio no es que un monorepo sea incorrecto, sino evitar que la estructura elegida contradiga la independencia que buscaba en esta solución.
+
+### 2. Un frontend de consulta como validación suficiente del flujo
+
+No consideré suficiente la primera versión de la interfaz, que permitía consultar información pero requería completar operaciones del negocio desde Postman. Pedí incorporar el recorrido completo en Angular: crear la orden, avanzar estados con motivo, agendar y cancelar citas y consultar el historial y los avisos.
+
+La decisión permite validar la experiencia del asesor y la integración de extremo a extremo, además de los contratos HTTP. Postman se conserva como herramienta complementaria de diagnóstico, no como un paso obligatorio para operar el taller. Las reglas, la capacidad y las versiones siguen validándose en Java y en la base de datos; completar Angular no implica trasladar el dominio al cliente.
 
 ## Priorización y trabajo fuera de alcance
 
